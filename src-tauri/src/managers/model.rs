@@ -24,6 +24,7 @@ pub enum EngineType {
     MoonshineStreaming,
     SenseVoice,
     GeminiApi,
+    GroqApi,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
@@ -423,6 +424,31 @@ impl ModelManager {
             },
         );
 
+        available_models.insert(
+            "groq-api".to_string(),
+            ModelInfo {
+                id: "groq-api".to_string(),
+                name: "Groq API (Whisper)".to_string(),
+                description:
+                    "Cloud-based transcription via Groq. Requires API key and internet."
+                        .to_string(),
+                filename: "".to_string(),
+                url: None,
+                size_mb: 0,
+                is_downloaded: true,
+                is_downloading: false,
+                partial_size: 0,
+                is_directory: false,
+                engine_type: EngineType::GroqApi,
+                accuracy_score: 0.9,
+                speed_score: 0.95,
+                supports_translation: false,
+                is_recommended: false,
+                supported_languages: whisper_languages.clone(),
+                is_custom: false,
+            },
+        );
+
         // Auto-discover custom Whisper models (.bin files) in the models directory
         if let Err(e) = Self::discover_custom_whisper_models(&models_dir, &mut available_models) {
             warn!("Failed to discover custom models: {}", e);
@@ -489,7 +515,7 @@ impl ModelManager {
         let mut models = self.available_models.lock().unwrap();
 
         for model in models.values_mut() {
-            if matches!(model.engine_type, EngineType::GeminiApi) {
+            if matches!(model.engine_type, EngineType::GeminiApi | EngineType::GroqApi) {
                 continue;
             }
             if model.is_directory {
@@ -565,7 +591,7 @@ impl ModelManager {
         if settings.selected_model.is_empty() {
             let models = self.available_models.lock().unwrap();
             if let Some(available_model) = models.values().find(|model| {
-                model.is_downloaded && !matches!(model.engine_type, EngineType::GeminiApi)
+                model.is_downloaded && !matches!(model.engine_type, EngineType::GeminiApi | EngineType::GroqApi)
             }) {
                 info!(
                     "Auto-selecting model: {} ({})",

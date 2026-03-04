@@ -388,6 +388,12 @@ pub struct AppSettings {
     #[serde(default = "default_gemini_model")]
     pub gemini_model: String,
     #[serde(default)]
+    pub groq_api_key: Option<String>,
+    #[serde(default = "default_groq_model")]
+    pub groq_model: String,
+    #[serde(default = "default_prefer_online_transcription")]
+    pub prefer_online_transcription: bool,
+    #[serde(default)]
     pub post_process_actions: Vec<PostProcessAction>,
     #[serde(default)]
     pub saved_processing_models: Vec<SavedProcessingModel>,
@@ -414,7 +420,7 @@ fn default_autostart_enabled() -> bool {
 }
 
 fn default_update_checks_enabled() -> bool {
-    true
+    false
 }
 
 fn default_selected_language() -> String {
@@ -618,6 +624,14 @@ fn default_gemini_model() -> String {
     "gemini-2.5-flash".to_string()
 }
 
+fn default_groq_model() -> String {
+    "whisper-large-v3-turbo".to_string()
+}
+
+fn default_prefer_online_transcription() -> bool {
+    true
+}
+
 fn ensure_post_process_defaults(settings: &mut AppSettings) -> bool {
     let mut changed = false;
     for provider in default_post_process_providers() {
@@ -776,6 +790,9 @@ pub fn get_default_settings() -> AppSettings {
         long_audio_threshold_seconds: default_long_audio_threshold_seconds(),
         gemini_api_key: None,
         gemini_model: default_gemini_model(),
+        groq_api_key: None,
+        groq_model: default_groq_model(),
+        prefer_online_transcription: default_prefer_online_transcription(),
         post_process_actions: Vec::new(),
         saved_processing_models: Vec::new(),
     }

@@ -575,6 +575,26 @@ impl ShortcutAction for TranscribeAction {
                 let original_model = tm.get_current_model();
                 let mut switched_model = false;
 
+                // Online-first: if prefer_online_transcription is enabled and Groq key is set,
+                // switch to Groq API unless already using it
+                if settings_for_model.prefer_online_transcription
+                    && settings_for_model
+                        .groq_api_key
+                        .as_ref()
+                        .map_or(false, |k| !k.is_empty())
+                    && original_model.as_deref() != Some("groq-api")
+                {
+                    debug!("Online transcription preferred, switching to Groq API");
+                    if let Err(e) = tm.load_model("groq-api") {
+                        warn!(
+                            "Failed to load Groq API model: {}, falling back to local model",
+                            e
+                        );
+                    } else {
+                        switched_model = true;
+                    }
+                }
+
                 if let Some(ref long_model_id) = settings_for_model.long_audio_model {
                     if duration_seconds > settings_for_model.long_audio_threshold_seconds
                         && original_model.as_deref() != Some(long_model_id.as_str())

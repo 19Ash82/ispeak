@@ -142,6 +142,11 @@ const settingUpdaters: {
   gemini_api_key: (value) =>
     commands.changeGeminiApiKeySetting((value as string | null) ?? ""),
   gemini_model: (value) => commands.changeGeminiModelSetting(value as string),
+  groq_api_key: (value) =>
+    commands.changeGroqApiKeySetting((value as string | null) ?? ""),
+  groq_model: (value) => commands.changeGroqModelSetting(value as string),
+  prefer_online_transcription: (value) =>
+    commands.changePreferOnlineTranscriptionSetting(value as boolean),
 };
 
 export const useSettingsStore = create<SettingsStore>()(

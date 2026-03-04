@@ -43,6 +43,7 @@ enum LoadedEngine {
     MoonshineStreaming(MoonshineStreamingEngine),
     SenseVoice(SenseVoiceEngine),
     GeminiApi,
+    GroqApi,
 }
 
 #[derive(Clone)]
@@ -167,6 +168,7 @@ impl TranscriptionManager {
                     LoadedEngine::MoonshineStreaming(ref mut e) => e.unload_model(),
                     LoadedEngine::SenseVoice(ref mut e) => e.unload_model(),
                     LoadedEngine::GeminiApi => {}
+                    LoadedEngine::GroqApi => {}
                 }
             }
             *engine = None; // Drop the engine to free memory
@@ -242,7 +244,7 @@ impl TranscriptionManager {
             return Err(anyhow::anyhow!(error_msg));
         }
 
-        let model_path = if matches!(model_info.engine_type, EngineType::GeminiApi) {
+        let model_path = if matches!(model_info.engine_type, EngineType::GeminiApi | EngineType::GroqApi) {
             std::path::PathBuf::new()
         } else {
             self.model_manager.get_model_path(model_id)?
@@ -373,6 +375,28 @@ impl TranscriptionManager {
                     return Err(anyhow::anyhow!(error_msg));
                 }
                 LoadedEngine::GeminiApi
+            }
+            EngineType::GroqApi => {
+                let settings = get_settings(&self.app_handle);
+                if settings.groq_api_key.is_none()
+                    || settings
+                        .groq_api_key
+                        .as_ref()
+                        .map_or(true, |k| k.is_empty())
+                {
+                    let error_msg = "Groq API key not configured";
+                    let _ = self.app_handle.emit(
+                        "model-state-changed",
+                        ModelStateEvent {
+                            event_type: "loading_failed".to_string(),
+                            model_id: Some(model_id.to_string()),
+                            model_name: Some(model_info.name.clone()),
+                            error: Some(error_msg.to_string()),
+                        },
+                    );
+                    return Err(anyhow::anyhow!(error_msg));
+                }
+                LoadedEngine::GroqApi
             }
         };
 
@@ -511,6 +535,56 @@ impl TranscriptionManager {
             }
         }
 
+        // Handle Groq API separately (requires async HTTP call)
+        {
+            let engine_guard = self.lock_engine();
+            if let Some(LoadedEngine::GroqApi) = engine_guard.as_ref() {
+                drop(engine_guard);
+                let api_key = settings
+                    .groq_api_key
+                    .as_ref()
+                    .ok_or_else(|| anyhow::anyhow!("Groq API key not configured"))?
+                    .clone();
+                let groq_model = settings.groq_model.clone();
+                let language = if settings.selected_language == "auto" {
+                    None
+                } else {
+                    Some(settings.selected_language.as_str())
+                };
+
+                let result = tokio::task::block_in_place(|| {
+                    tokio::runtime::Handle::current().block_on(
+                        crate::groq_client::transcribe_audio(
+                            &api_key,
+                            &groq_model,
+                            &audio,
+                            language,
+                        ),
+                    )
+                })?;
+
+                let corrected = if !settings.custom_words.is_empty() {
+                    apply_custom_words(
+                        &result,
+                        &settings.custom_words,
+                        settings.word_correction_threshold,
+                    )
+                } else {
+                    result
+                };
+                let final_result = filter_transcription_output(&corrected);
+
+                let et = std::time::Instant::now();
+                info!(
+                    "Groq transcription completed in {}ms",
+                    (et - st).as_millis()
+                );
+
+                self.maybe_unload_immediately("groq transcription");
+                return Ok(final_result);
+            }
+        }
+
         // Perform transcription with the appropriate engine.
         // We use catch_unwind to prevent engine panics from poisoning the mutex,
         // which would make the app hang indefinitely on subsequent operations.
@@ -599,6 +673,9 @@ impl TranscriptionManager {
                         }
                         LoadedEngine::GeminiApi => {
                             unreachable!("GeminiApi handled before catch_unwind")
+                        }
+                        LoadedEngine::GroqApi => {
+                            unreachable!("GroqApi handled before catch_unwind")
                         }
                     }
                 },

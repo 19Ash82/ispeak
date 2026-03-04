@@ -7,6 +7,7 @@ pub mod cli;
 mod clipboard;
 mod commands;
 pub mod gemini_client;
+pub mod groq_client;
 mod helpers;
 mod input;
 mod llm_client;
@@ -357,6 +358,9 @@ pub fn run(cli_args: CliArgs) {
         commands::history::reprocess_history_entry,
         commands::gemini::change_gemini_api_key_setting,
         commands::gemini::change_gemini_model_setting,
+        commands::groq::change_groq_api_key_setting,
+        commands::groq::change_groq_model_setting,
+        commands::groq::change_prefer_online_transcription_setting,
         helpers::clamshell::is_laptop,
     ]);
 

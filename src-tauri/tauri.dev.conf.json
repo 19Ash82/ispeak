@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ParlerDev",
-  "identifier": "com.melvynx.parler.dev",
+  "productName": "iSpeakDev",
+  "identifier": "com.ashvin.ispeak.dev",
   "app": {
     "windows": [
       {
         "label": "main",
-        "title": "ParlerDev",
+        "title": "iSpeakDev",
         "width": 680,
         "height": 570,
         "minWidth": 680,

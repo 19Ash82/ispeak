@@ -1,11 +1,11 @@
 [package]
-name = "parler"
+name = "ispeak"
 version = "0.7.14"
-description = "Parler"
+description = "iSpeak"
 authors = ["cjpais"]
 edition = "2021"
 license = "MIT"
-default-run = "parler"
+default-run = "ispeak"
 
 [profile.dev]
 incremental = true # Compile your binary in smaller steps.
@@ -59,7 +59,7 @@ tokio = "1.43.0"
 vad-rs = { git = "https://github.com/cjpais/vad-rs", default-features = false }
 enigo = "0.6.1"
 rodio = { git = "https://github.com/cjpais/rodio.git" }
-reqwest = { version = "0.12", features = ["json", "stream"] }
+reqwest = { version = "0.12", features = ["json", "stream", "multipart"] }
 futures-util = "0.3"
 rustfft = "6.4.0"
 strsim = "0.11.0"
