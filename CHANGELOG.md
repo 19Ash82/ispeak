@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.7.14-ispeak] - 2026-03-04
+
+### Fork: iSpeak (from Melvynx/Parler v0.7.14)
+
+### Added
+
+- **Groq Whisper API** - Cloud-based transcription via Groq's free Whisper API (~400ms latency)
+- **Auto language detection** - Seamless EN/FR switching without changing settings
+- **Online/offline toggle** - Groq API by default, fall back to local Whisper models when offline
+- **Linux paste fix** - Bypass Enigo on X11 when native tools (xdotool) are available
+
+### Changed
+
+- Renamed from Parler to **iSpeak** (configs, UI, translations, identifiers)
+- Removed update checker UI (no update server for fork)
+- Disabled auto-updater to prevent upstream overwrites
+- Added `xdotool` as .deb runtime dependency for paste on X11
+
 ## [0.3.0] - 2025-07-11
 
 ### Added
