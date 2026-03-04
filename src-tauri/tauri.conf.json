@@ -73,5 +73,9 @@
       "signCommand": "trusted-signing-cli -e https://eus.codesigning.azure.net/ -a CJ-Signing -c cjpais-dev -d Handy %1"
     }
   },
-  "plugins": {}
+  "plugins": {
+    "updater": {
+      "endpoints": []
+    }
+  }
 }
