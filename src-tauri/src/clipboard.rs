@@ -605,7 +605,71 @@ pub fn paste(text: String, app_handle: AppHandle) -> Result<(), String> {
         paste_method, paste_delay_ms
     );
 
-    // Get the managed Enigo instance
+    // On Linux, try native tools first (xdotool, ydotool, etc.) before requiring Enigo,
+    // since Enigo may fail to initialize on some X11 setups (no empty keycodes).
+    #[cfg(target_os = "linux")]
+    {
+        let mut handled = false;
+        match paste_method {
+            PasteMethod::None => {
+                info!("PasteMethod::None selected - skipping paste action");
+                handled = true;
+            }
+            PasteMethod::Direct => {
+                if try_direct_typing_linux(&text, settings.typing_tool)? {
+                    info!("Direct paste handled by native Linux tool");
+                    handled = true;
+                }
+            }
+            PasteMethod::CtrlV | PasteMethod::CtrlShiftV | PasteMethod::ShiftInsert => {
+                // Write text to clipboard first
+                let clipboard = app_handle.clipboard();
+                if is_wayland() && is_wl_copy_available() {
+                    info!("Using wl-copy for clipboard write on Wayland");
+                    write_clipboard_via_wl_copy(&text)?;
+                } else {
+                    clipboard
+                        .write_text(&text)
+                        .map_err(|e| format!("Failed to write to clipboard: {}", e))?;
+                }
+                std::thread::sleep(Duration::from_millis(paste_delay_ms));
+                if try_send_key_combo_linux(&paste_method)? {
+                    info!("Clipboard paste key combo handled by native Linux tool");
+                    std::thread::sleep(Duration::from_millis(50));
+                    handled = true;
+                }
+            }
+            PasteMethod::ExternalScript => {
+                let script_path = settings
+                    .external_script_path
+                    .as_ref()
+                    .filter(|p| !p.is_empty())
+                    .ok_or("External script path is not configured")?;
+                paste_via_external_script(&text, script_path)?;
+                handled = true;
+            }
+        }
+
+        if handled {
+            if should_send_auto_submit(settings.auto_submit, paste_method) {
+                // Auto-submit needs Enigo for the Return key, try if available
+                if let Some(enigo_state) = app_handle.try_state::<EnigoState>() {
+                    if let Ok(mut enigo) = enigo_state.0.lock() {
+                        std::thread::sleep(Duration::from_millis(50));
+                        let _ = send_return_key(&mut enigo, settings.auto_submit_key);
+                    }
+                }
+            }
+            if settings.clipboard_handling == ClipboardHandling::CopyToClipboard {
+                let clipboard = app_handle.clipboard();
+                let _ = clipboard.write_text(&text);
+            }
+            return Ok(());
+        }
+        info!("Native Linux tools not available, falling back to Enigo");
+    }
+
+    // Get the managed Enigo instance (fallback path, or non-Linux)
     let enigo_state = app_handle
         .try_state::<EnigoState>()
         .ok_or("Enigo state not initialized")?;
