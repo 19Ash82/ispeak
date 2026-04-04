@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { listen } from "@tauri-apps/api/event";
 import { platform } from "@tauri-apps/plugin-os";
 import { getIdentifier } from "@tauri-apps/api/app";
 import {
@@ -53,6 +54,18 @@ function App() {
   useEffect(() => {
     initializeRTL(i18n.language);
   }, [i18n.language]);
+
+  useEffect(() => {
+    const unlisten = listen("microphone-muted", () => {
+      toast.warning(i18n.t("errors.microphoneMuted"), {
+        description: i18n.t("errors.microphoneMutedDescription"),
+        duration: 6000,
+      });
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, [i18n]);
 
   // Initialize Enigo, shortcuts, and refresh audio devices when main app loads
   useEffect(() => {

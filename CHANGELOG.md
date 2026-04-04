@@ -1,15 +1,31 @@
 # Changelog
 
+## [0.8.0] - 2026-04-02
+
+### Added
+
+- **Microphone mute detection** — Warns with a toast notification if your system mic is muted when starting a recording (Linux: PipeWire/PulseAudio)
+
+### Changed
+
+- Completed Parler → iSpeak rebrand: system tray, CLI, log files, Rust crate name, frontend components, CI workflows, window title
+- Bumped version to 0.8.0
+
+### Fixed
+
+- Release workflow still referenced old "parler" asset prefix
+- Missing mic mute translations for Spanish and Vietnamese
+
 ## [0.7.14-ispeak] - 2026-03-04
 
 ### Fork: iSpeak (from Melvynx/Parler v0.7.14)
 
 ### Added
 
-- **Groq Whisper API** - Cloud-based transcription via Groq's free Whisper API (~400ms latency)
-- **Auto language detection** - Seamless EN/FR switching without changing settings
-- **Online/offline toggle** - Groq API by default, fall back to local Whisper models when offline
-- **Linux paste fix** - Bypass Enigo on X11 when native tools (xdotool) are available
+- **Groq Whisper API** — Cloud-based transcription via Groq's free Whisper API (~400ms latency)
+- **Auto language detection** — Seamless EN/FR switching without changing settings
+- **Online/offline toggle** — Groq API by default, fall back to local Whisper models when offline
+- **Linux paste fix** — Bypass Enigo on X11 when native tools (xdotool) are available
 
 ### Changed
 

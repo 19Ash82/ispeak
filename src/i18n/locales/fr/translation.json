@@ -540,7 +540,9 @@
     "dismiss": "Ignorer"
   },
   "errors": {
-    "loadDirectory": "Erreur lors du chargement du répertoire : {{error}}"
+    "loadDirectory": "Erreur lors du chargement du répertoire : {{error}}",
+    "microphoneMuted": "Le microphone est coupé",
+    "microphoneMutedDescription": "Votre microphone est coupé au niveau du système. Veuillez le réactiver dans les paramètres audio."
   },
   "appLanguage": {
     "title": "Langue de l'application",

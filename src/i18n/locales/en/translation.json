@@ -622,7 +622,9 @@
     "dismiss": "Dismiss"
   },
   "errors": {
-    "loadDirectory": "Error loading directory: {{error}}"
+    "loadDirectory": "Error loading directory: {{error}}",
+    "microphoneMuted": "Microphone is muted",
+    "microphoneMutedDescription": "Your microphone is muted at the system level. Please unmute it in your system audio settings."
   },
   "appLanguage": {
     "title": "Application Language",

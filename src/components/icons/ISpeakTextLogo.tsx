@@ -1,4 +1,4 @@
-const ParlerTextLogo = ({
+const ISpeakTextLogo = ({
   width,
   className,
 }: {
@@ -22,4 +22,4 @@ const ParlerTextLogo = ({
   );
 };
 
-export default ParlerTextLogo;
+export default ISpeakTextLogo;

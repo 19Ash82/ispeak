@@ -537,7 +537,9 @@
     "dismiss": "Descartar"
   },
   "errors": {
-    "loadDirectory": "Error al cargar el directorio: {{error}}"
+    "loadDirectory": "Error al cargar el directorio: {{error}}",
+    "microphoneMuted": "El micrófono está silenciado",
+    "microphoneMutedDescription": "Tu micrófono está silenciado a nivel del sistema. Por favor, actívalo en la configuración de audio."
   },
   "appLanguage": {
     "title": "Idioma de la aplicación",

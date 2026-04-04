@@ -537,7 +537,9 @@
     "dismiss": "Bỏ qua"
   },
   "errors": {
-    "loadDirectory": "Lỗi khi tải thư mục: {{error}}"
+    "loadDirectory": "Lỗi khi tải thư mục: {{error}}",
+    "microphoneMuted": "Micrô đang tắt tiếng",
+    "microphoneMutedDescription": "Micrô của bạn đang bị tắt tiếng ở cấp hệ thống. Vui lòng bật lại trong cài đặt âm thanh."
   },
   "appLanguage": {
     "title": "Ngôn ngữ ứng dụng",

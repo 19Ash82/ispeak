@@ -2,10 +2,10 @@ use crate::audio_toolkit::{list_input_devices, vad::SmoothedVad, AudioRecorder, 
 use crate::helpers::clamshell;
 use crate::settings::{get_settings, AppSettings};
 use crate::utils;
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 
 fn set_mute(mute: bool) {
     // Expected behavior:
@@ -94,6 +94,39 @@ fn set_mute(mute: bool) {
         );
         let _ = Command::new("osascript").args(["-e", &script]).output();
     }
+}
+
+fn check_source_muted() -> bool {
+    #[cfg(target_os = "linux")]
+    {
+        use std::process::Command;
+
+        if let Ok(output) = Command::new("wpctl")
+            .args(["get-volume", "@DEFAULT_AUDIO_SOURCE@"])
+            .output()
+        {
+            if output.status.success() {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                if stdout.contains("[MUTED]") {
+                    return true;
+                }
+            }
+        }
+
+        if let Ok(output) = Command::new("pactl")
+            .args(["get-source-mute", "@DEFAULT_SOURCE@"])
+            .output()
+        {
+            if output.status.success() {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                if stdout.contains("yes") {
+                    return true;
+                }
+            }
+        }
+    }
+
+    false
 }
 
 const WHISPER_SAMPLE_RATE: usize = 16000;
@@ -336,6 +369,11 @@ impl AudioRecordingManager {
         let mut state = self.state.lock().unwrap();
 
         if let RecordingState::Idle = *state {
+            if check_source_muted() {
+                warn!("Default audio source is muted — recording may capture silence");
+                let _ = self.app_handle.emit("microphone-muted", ());
+            }
+
             // Ensure microphone is open in on-demand mode
             if matches!(*self.mode.lock().unwrap(), MicrophoneMode::OnDemand) {
                 if let Err(e) = self.start_microphone_stream() {
