@@ -590,7 +590,8 @@ fn should_send_auto_submit(auto_submit: bool, paste_method: PasteMethod) -> bool
 
 pub fn paste(text: String, app_handle: AppHandle) -> Result<(), String> {
     let settings = get_settings(&app_handle);
-    let paste_method = settings.paste_method;
+    #[allow(unused_mut)]
+    let mut paste_method = settings.paste_method;
     let paste_delay_ms = settings.paste_delay_ms;
 
     // Append trailing space if setting is enabled
@@ -599,6 +600,23 @@ pub fn paste(text: String, app_handle: AppHandle) -> Result<(), String> {
     } else {
         text
     };
+
+    // Auto-fallback: switch Direct typing to clipboard paste for large text
+    // to prevent terminal freezes (PTY buffer overflow with synthetic keystrokes)
+    #[cfg(target_os = "linux")]
+    let text_char_count = text.chars().count() as u64;
+    #[cfg(target_os = "linux")]
+    if paste_method == PasteMethod::Direct
+        && settings.large_text_threshold > 0
+        && text_char_count > settings.large_text_threshold
+    {
+        info!(
+            "Text length ({} chars) exceeds large_text_threshold ({}), falling back to CtrlShiftV clipboard paste",
+            text_char_count,
+            settings.large_text_threshold
+        );
+        paste_method = PasteMethod::CtrlShiftV;
+    }
 
     info!(
         "Using paste method: {:?}, delay: {}ms",
@@ -622,8 +640,9 @@ pub fn paste(text: String, app_handle: AppHandle) -> Result<(), String> {
                 }
             }
             PasteMethod::CtrlV | PasteMethod::CtrlShiftV | PasteMethod::ShiftInsert => {
-                // Write text to clipboard first
                 let clipboard = app_handle.clipboard();
+                let clipboard_content = clipboard.read_text().unwrap_or_default();
+
                 if is_wayland() && is_wl_copy_available() {
                     info!("Using wl-copy for clipboard write on Wayland");
                     write_clipboard_via_wl_copy(&text)?;
@@ -637,6 +656,14 @@ pub fn paste(text: String, app_handle: AppHandle) -> Result<(), String> {
                     info!("Clipboard paste key combo handled by native Linux tool");
                     std::thread::sleep(Duration::from_millis(50));
                     handled = true;
+                }
+
+                // Restore original clipboard content (even if native key combo
+                // failed, so the Enigo fallback gets a clean clipboard state)
+                if is_wayland() && is_wl_copy_available() {
+                    let _ = write_clipboard_via_wl_copy(&clipboard_content);
+                } else {
+                    let _ = clipboard.write_text(&clipboard_content);
                 }
             }
             PasteMethod::ExternalScript => {

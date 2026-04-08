@@ -1263,3 +1263,12 @@ pub fn change_long_audio_threshold_setting(app: AppHandle, threshold: f32) -> Re
     settings::write_settings(&app, settings);
     Ok(())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub fn change_large_text_threshold_setting(app: AppHandle, threshold: u64) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.large_text_threshold = threshold;
+    settings::write_settings(&app, settings);
+    Ok(())
+}

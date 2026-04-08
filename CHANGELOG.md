@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.8.1] - 2026-04-08
+
+### Added
+
+- **Large text auto-fallback** — When using Direct paste on Linux, text exceeding a configurable threshold (default 2000 chars) automatically switches to clipboard paste (Ctrl+Shift+V) to prevent terminal freezes
+- **Large Text Threshold setting** — Configurable in Advanced > Output (Linux only), range 0-5000, set to 0 to disable
+
+### Fixed
+
+- Clipboard save/restore now works in the Linux native clipboard paste path (previously only worked in the Enigo fallback path)
+
 ## [0.8.0] - 2026-04-02
 
 ### Added

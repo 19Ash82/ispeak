@@ -308,6 +308,10 @@
           "auto": "Auto (Recommended)"
         }
       },
+      "largeTextThreshold": {
+        "title": "Large Text Threshold",
+        "description": "When using Direct paste and text exceeds this character count, automatically switch to clipboard paste to prevent terminal freezes. Set to 0 to disable."
+      },
       "clipboardHandling": {
         "title": "Clipboard Handling",
         "description": "Don't Modify Clipboard preserves your current clipboard contents after transcription. Copy to Clipboard leaves the transcription result in your clipboard after pasting.",
