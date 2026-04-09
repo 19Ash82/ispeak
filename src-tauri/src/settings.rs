@@ -207,9 +207,10 @@ impl Default for ModelUnloadTimeout {
 
 impl Default for PasteMethod {
     fn default() -> Self {
-        // Default to CtrlV for macOS and Windows, Direct for Linux
+        // Default to CtrlShiftV for Linux (prevents terminal freezes with synthetic keystrokes),
+        // CtrlV for macOS and Windows
         #[cfg(target_os = "linux")]
-        return PasteMethod::Direct;
+        return PasteMethod::CtrlShiftV;
         #[cfg(not(target_os = "linux"))]
         return PasteMethod::CtrlV;
     }
